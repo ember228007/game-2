@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кибер-Угадайка: Секретный код</title>
+    <style>
+        :root {
+            --bg: #090d16;
+            --panel: #131b2e;
+            --accent: #00ffcc;
+            --accent-glow: rgba(0, 255, 204, 0.3);
+            --danger: #ff0055;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 204, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            background: var(--panel);
+            border: 2px solid rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 255, 204, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--danger), var(--accent));
+            border-radius: 20px 20px 0 0;
+        }
+
+        h1 {
+            color: var(--accent);
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        input {
+            flex: 1;
+            background: #070a12;
+            border: 2px solid #2a3a5e;
+            border-radius: 12px;
+            color: var(--accent);
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 12px;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent), #00b386);
+            color: #070a12;
+            border: none;
+            padding: 0 24px;
+            font-size: 1rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 204, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .metrics {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--muted);
+            border-top: 1px solid #1e293b;
+            padding-top: 15px;
+        }
+
+        .metrics span {
+            color: var(--text);
+            font-weight: bold;
+        }
+
+        /* Окно результатов (Модалка) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 40px var(--accent-glow);
+            padding: 35px;
+            border-radius: 20px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            color: var(--accent);
+            margin-top: 0;
+            font-size: 2rem;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .result-stats {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .result-stats div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .result-stats span {
+            color: var(--accent);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Секретный код</h1>
+        <div class="subtitle">Система сгенерировала число от 1 до 100</div>
+
+        <div class="status-box" id="message">Ожидание ввода данных...</div>
+
+        <div class="input-group">
+            <input type="number" id="userGuess" min="1" max="100" placeholder="?">
+            <button class="btn" id="submitBtn">Ввод</button>
+        </div>
+
+        <div class="metrics">
+            <div>Попытки: <span id="attempts">0</span></div>
+            <div>Интервал: <span id="range">1 — 100</span></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно победы -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2>ПОБЕДА!</h2>
+            <p>Вы успешно подобрали шифр системы!</p>
+            
+            <div class="result-stats">
+                <div>Загаданное число: <span id="resNumber">42</span></div>
+                <div>Потрачено попыток: <span id="resAttempts">5</span></div>
+                <div>Затрачено времени: <span id="resTime">12 сек</span></div>
+            </div>
+
+            <button class="btn" style="width: 100%; padding: 12px;" onclick="initGame()">Новый взлом</button>
+        </div>
+    </div>
+
+    <script>
+        let secretNumber, attempts, minLimit, maxLimit, startTime, timerInterval;
+        
+        const guessInput = document.getElementById('userGuess');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageEl = document.getElementById('message');
+        const attemptsEl = document.getElementById('attempts');
+        const rangeEl = document.getElementById('range');
+        const modal = document.getElementById('resultModal');
+        
+        const resNumber = document.getElementById('resNumber');
+        const resAttempts = document.getElementById('resAttempts');
+        const resTime = document.getElementById('resTime');
+
+        // Web Audio API синтезатор звуков
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            let now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(220, now + 0.05);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'hint') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(450, now + 0.08);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'win') {
+                let notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    let o = audioCtx.createOscillator();
+                    let g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, now + index * 0.1);
+                    g.gain.setValueAtTime(0.1, now + index * 0.1);
+                    g.gain.linearRampToValueAtTime(0.001, now + index * 0.1 + 0.15);
+                    o.start(now + index * 0.1);
+                    o.stop(now + index * 0.1 + 0.15);
+                });
+            }
+        }
+
+        function initGame() {
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            minLimit = 1;
+            maxLimit = 100;
+            startTime = Date.now();
+
+            attemptsEl.textContent = attempts;
+            rangeEl.textContent = `${minLimit} — ${maxLimit}`;
+            messageEl.textContent = "Введите число от 1 до 100";
+            messageEl.style.color = "var(--text)";
+            messageEl.style.borderColor = "#1e293b";
+            modal.style.display = "none";
+            guessInput.value = "";
+            guessInput.focus();
+        }
+
+        function processGuess() {
+            let val = Number(guessInput.value);
+
+            if (!val || val < minLimit || val > maxLimit) {
+                playSound('error');
+                messageEl.style.color = "var(--danger)";
+                messageEl.style.borderColor = "var(--danger)";
+                messageEl.textContent = `Ошибка! Введите от ${minLimit} до ${maxLimit}`;
+                return;
+            }
+
+            attempts++;
+            attemptsEl.textContent = attempts;
+            playSound('click');
+
+            if (val === secretNumber) {
+                playSound('win');
+                let totalTime = Math.floor((Date.now() - startTime) / 1000);
+                
+                resNumber.textContent = secretNumber;
+                resAttempts.textContent = attempts;
+                resTime.textContent = `${totalTime} сек.`;
+                modal.style.display = "flex";
+            } else if (val < secretNumber) {
+                playSound('hint');
+                if (val >= minLimit) minLimit = val + 1;
+                messageEl.style.color = "var(--accent)";
+                messageEl.style.borderColor = "var(--accent-glow)";
+                messageEl.textContent = "▲ Код БОЛЬШЕ!";
+            } else {
+                playSound('hint');
+                if (val <= maxLimit) maxLimit = val - 1;
+                messageEl.style.color = "var(--danger)";
+                messageEl.style.borderColor = "rgba(255, 0, 85, 0.3)";
+                messageEl.textContent = "▼ Код МЕНЬШЕ!";
+            }
+
+            rangeEl.textContent = `${minLimit} — ${maxLimit}`;
+            guessInput.value = "";
+            guessInput.focus();
+        }
+
+        submitBtn.addEventListener('click', processGuess);
+        guessInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') processGuess();
+        });
+
+        // Запуск при старте
+        initGame();
+    </script>
+</body>
+</html>
